@@ -2,7 +2,7 @@
 
 ## Descrição
 
-Este projeto é um bot para Telegram desenvolvido em C#. Ele utiliza a API do Telegram para interagir com usuários e realizar diversas funcionalidades automatizadas. O objetivo principal do bot é [descreva brevemente o objetivo do bot, por exemplo, "responder a perguntas frequentes", "fornecer informações sobre o clima", etc.].
+Este projeto é um bot para Telegram desenvolvido em C#. Ele utiliza a API do Telegram para interagir com usuários e realizar diversas funcionalidades automatizadas. O objetivo principal do bot é gerenciar uma temporada de Cartola FC entre amigos em um grupo de Telegram.
 
 <!--
 ## Funcionalidades
