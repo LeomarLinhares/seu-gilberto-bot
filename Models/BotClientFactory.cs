@@ -3,13 +3,8 @@ using Telegram.Bot;
 
 public static class BotClientFactory
 {
-    public static TelegramBotClient CreateBotClient()
+    public static TelegramBotClient CreateBotClient(string token)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-        var settings = configuration.GetSection("TelegramBot").Get<TelegramBotSettings>();
-        return new TelegramBotClient(settings.Token);
+        return new TelegramBotClient(token);
     }
 }

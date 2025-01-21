@@ -1,15 +1,27 @@
-﻿using Telegram.Bot;
+﻿using Microsoft.Extensions.Configuration;
+using Telegram.Bot;
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        var botClient = BotClientFactory.CreateBotClient();
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        var settings = configuration.GetSection("TelegramBot").Get<TelegramBotSettings>();
+
+        if (settings == null)
+        {
+            Console.WriteLine("Não foi possível obter o arquivo de configuração");
+            return;
+        }
+
+        var botClient = BotClientFactory.CreateBotClient(settings.Token);
         var commandService = new BotCommandService();
         var botService = new BotService(botClient, commandService);
         botService.StartBot();
 
-        Console.WriteLine("Digite o comando (/msg [id-do-chat] mensagem) ou 'sair' para encerrar:");
+        Console.WriteLine("Digite o comando (/msg mensagem) ou 'sair' para encerrar:");
 
         while (true)
         {
@@ -21,23 +33,20 @@ class Program
 
             if (input.StartsWith("/msg"))
             {
-                // Divide o comando em partes
-                var parts = input.Split(' ', 3); // Divide em no máximo 3 partes: comando, id, mensagem
+                var parts = input.Split(' ', 2);
 
-                if (parts.Length < 3)
+                if (parts.Length < 2)
                 {
-                    Console.WriteLine("Comando inválido. Use: /msg [id-do-chat] mensagem");
+                    Console.WriteLine("Comando inválido. Use: /msg mensagem");
                     continue;
                 }
 
-                // Tenta converter o id-do-chat
-                if (long.TryParse(parts[1], out long chatId))
                 {
-                    var message = parts[2]; // A mensagem é a terceira parte
+                    var message = parts[1];
 
                     if (!string.IsNullOrWhiteSpace(message))
                     {
-                        await botClient.SendMessage(chatId, message);
+                        await botClient.SendMessage(settings.TargetGroup, message);
                         Console.WriteLine("Mensagem enviada!");
                     }
                     else
@@ -45,14 +54,10 @@ class Program
                         Console.WriteLine("Mensagem inválida.");
                     }
                 }
-                else
-                {
-                    Console.WriteLine("ID do chat inválido. Use um número válido.");
-                }
             }
             else
             {
-                Console.WriteLine("Comando não reconhecido. Use: /msg [id-do-chat] mensagem");
+                Console.WriteLine("Comando não reconhecido. Use: /msg mensagem");
             }
         }
 

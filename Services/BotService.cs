@@ -22,8 +22,6 @@ public class BotService
             HandleErrorAsync,
             cancellationToken: cancellationToken
         );
-
-        Console.ReadLine();
     }
 
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
