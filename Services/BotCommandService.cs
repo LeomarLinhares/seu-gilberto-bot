@@ -1,8 +1,15 @@
-﻿using Telegram.Bot;
+﻿using System.Text.Json;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 public class BotCommandService
 {
+    private readonly DeepSeekService _deepSeekService;
+
+    public BotCommandService(DeepSeekService deepSeekService)
+    {
+        _deepSeekService = deepSeekService;
+    }
     public void HandleMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
         var messageText = message.Text;
@@ -29,6 +36,10 @@ public class BotCommandService
                     botClient.SendMessage(chatId, "Comandos disponíveis:\n/start\n/help", cancellationToken: cancellationToken);
                     break;
 
+                case "/cadastrar":
+                    botClient.SendMessage(chatId, $"Usuário: {message.From.Username}, Id: {message.From.Id}", cancellationToken: cancellationToken);
+                    break;
+
                 default:
                     botClient.SendMessage(chatId, "Comando não reconhecido.", cancellationToken: cancellationToken);
                     break;
@@ -40,21 +51,19 @@ public class BotCommandService
         }
     }
 
-    private void ProcessRegularMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+    private async void ProcessRegularMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
         var chatId = message.Chat.Id;
         var messageText = message.Text;
 
-        botClient.SendMessage(chatId, $"Você disse: {messageText}", cancellationToken: cancellationToken);
-
-        if (messageText.Contains("Olá", StringComparison.OrdinalIgnoreCase))
+        // Envia a mensagem para o DeepSeek e obtém a resposta
+        var response = await _deepSeekService.GetResponseAsync(messageText);
+        if (messageText.EndsWith("ão", StringComparison.OrdinalIgnoreCase))
         {
-            botClient.SendMessage(chatId, "Oi! Como posso ajudar?", cancellationToken: cancellationToken);
+            botClient.SendMessage(chatId, "Meu pau na sua mão", cancellationToken: cancellationToken);
         }
-        else if (messageText.Contains("obrigado", StringComparison.OrdinalIgnoreCase))
-        {
-            botClient.SendMessage(chatId, "De nada! Estou aqui para ajudar.", cancellationToken: cancellationToken);
-        }
+        // Envia a resposta de volta para o chat do Telegram
+        await botClient.SendMessage(chatId, response, cancellationToken: cancellationToken);
     }
 
 

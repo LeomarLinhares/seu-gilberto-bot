@@ -6,18 +6,22 @@ class Program
     static async Task Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
-        var settings = configuration.GetSection("TelegramBot").Get<TelegramBotSettings>();
 
-        if (settings == null)
+        var appSettings = new AppSettings();
+        configuration.Bind(appSettings);
+
+        if (appSettings == null)
         {
             Console.WriteLine("Não foi possível obter o arquivo de configuração");
             return;
         }
 
-        var botClient = BotClientFactory.CreateBotClient(settings.Token);
-        var commandService = new BotCommandService();
+        var botClient = BotClientFactory.CreateBotClient(appSettings.TelegramBot.Token);
+        var deepSeekService = new DeepSeekService(appSettings.DeepSeek.ApiKey, appSettings.DeepSeek.ApiUrl);
+        var commandService = new BotCommandService(deepSeekService);
         var botService = new BotService(botClient, commandService);
         botService.StartBot();
 
@@ -46,7 +50,7 @@ class Program
 
                     if (!string.IsNullOrWhiteSpace(message))
                     {
-                        await botClient.SendMessage(settings.TargetGroup, message);
+                        await botClient.SendMessage(appSettings.TelegramBot.TargetGroup, message);
                         Console.WriteLine("Mensagem enviada!");
                     }
                     else
