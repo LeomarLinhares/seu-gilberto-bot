@@ -1,10 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using SeuGilbertoBot.Configurations;
+using SeuGilbertoBot.Repositories;
 using Telegram.Bot;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 class Program
 {
     static async Task Main(string[] args)
     {
+        // 🔹 Carregar configuração do `appsettings.json`
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -19,17 +27,35 @@ class Program
             return;
         }
 
-        var botClient = BotClientFactory.CreateBotClient(appSettings.TelegramBot.Token);
-        var deepSeekService = new DeepSeekService(appSettings.DeepSeek.ApiKey, appSettings.DeepSeek.ApiUrl);
-        var commandService = new BotCommandService(deepSeekService);
-        var botService = new BotService(botClient, commandService);
+        // 🔹 Obtém a string de conexão para SQLite
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        // 🔹 Configurar injeção de dependências
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddSingleton(appSettings);
+                services.AddAppServices(connectionString); // Agora usa SQLite!
+                services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(appSettings.TelegramBot.Token));
+
+                services.AddScoped<DeepSeekService>(provider =>
+                    new DeepSeekService(appSettings.DeepSeek.ApiKey, appSettings.DeepSeek.ApiUrl));
+
+                services.AddScoped<BotCommandService>();
+                services.AddScoped<BotService>();
+            })
+            .Build();
+
+        using var scope = host.Services.CreateScope();
+        var serviceProvider = scope.ServiceProvider;
+
+        var botService = serviceProvider.GetRequiredService<BotService>();
         botService.StartBot();
 
         Console.WriteLine("Digite o comando (/msg mensagem) ou 'sair' para encerrar:");
 
         while (true)
         {
-            // Lê o comando diretamente do console
             var input = Console.ReadLine();
 
             if (input?.ToLower() == "/sair")
@@ -45,18 +71,17 @@ class Program
                     continue;
                 }
 
-                {
-                    var message = parts[1];
+                var message = parts[1];
 
-                    if (!string.IsNullOrWhiteSpace(message))
-                    {
-                        await botClient.SendMessage(appSettings.TelegramBot.TargetGroup, message);
-                        Console.WriteLine("Mensagem enviada!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Mensagem inválida.");
-                    }
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    var botClient = serviceProvider.GetRequiredService<ITelegramBotClient>();
+                    await botClient.SendMessage(appSettings.TelegramBot.TargetGroup, message);
+                    Console.WriteLine("Mensagem enviada!");
+                }
+                else
+                {
+                    Console.WriteLine("Mensagem inválida.");
                 }
             }
             else

@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 public class BotCommandService
 {
     private readonly DeepSeekService _deepSeekService;
+    private static readonly ConcurrentDictionary<long, List<Message>> GroupMessages = new();
 
     public BotCommandService(DeepSeekService deepSeekService)
     {
@@ -32,6 +34,10 @@ public class BotCommandService
                     botClient.SendMessage(chatId, "Bem-vindo ao bot!", cancellationToken: cancellationToken);
                     break;
 
+                case "/rodadaInfo":
+                    botClient.SendMessage(chatId, "__ROUND_INFO__", cancellationToken: cancellationToken);
+                    break;
+
                 case "/help":
                     botClient.SendMessage(chatId, "Comandos disponíveis:\n/start\n/help", cancellationToken: cancellationToken);
                     break;
@@ -56,14 +62,13 @@ public class BotCommandService
         var chatId = message.Chat.Id;
         var messageText = message.Text;
 
-        // Envia a mensagem para o DeepSeek e obtém a resposta
-        var response = await _deepSeekService.GetResponseAsync(messageText);
         if (messageText.EndsWith("ão", StringComparison.OrdinalIgnoreCase))
         {
-            botClient.SendMessage(chatId, "Meu pau na sua mão", cancellationToken: cancellationToken);
+            botClient.SendMessage(chatId, "MEU PAU NA SUA MÃO", cancellationToken: cancellationToken);
         }
-        // Envia a resposta de volta para o chat do Telegram
-        await botClient.SendMessage(chatId, response, cancellationToken: cancellationToken);
+
+        //var response = await _deepSeekService.GetResponseAsync(messageText);
+        //await botClient.SendMessage(chatId, response, cancellationToken: cancellationToken);
     }
 
 
@@ -72,4 +77,5 @@ public class BotCommandService
         Console.WriteLine($"Erro: {exception.Message}");
         return Task.CompletedTask;
     }
+
 }
