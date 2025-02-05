@@ -11,7 +11,7 @@ using SeuGilbertoBot.Data;
 namespace SeuGilbertoBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20250205093329_InitialCreate")]
+    [Migration("20250205104352_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

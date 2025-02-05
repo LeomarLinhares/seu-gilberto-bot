@@ -1,26 +1,34 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 public class BotService
 {
     private readonly ITelegramBotClient _botClient;
     private readonly BotCommandService _commandService;
+    private readonly CancellationTokenSource _cts;
 
     public BotService(ITelegramBotClient botClient, BotCommandService commandService)
     {
         _botClient = botClient;
         _commandService = commandService;
+        _cts = new CancellationTokenSource();
     }
 
     public void StartBot()
     {
-        var cancellationToken = new CancellationTokenSource().Token;
+        Console.WriteLine("🤖 Bot está iniciando...");
+        RegisterCommands();
 
         _botClient.StartReceiving(
             HandleUpdateAsync,
             HandleErrorAsync,
-            cancellationToken: cancellationToken
+            receiverOptions: new ReceiverOptions
+            {
+                AllowedUpdates = Array.Empty<UpdateType>() // Receber todas as atualizações
+            },
+            cancellationToken: _cts.Token
         );
     }
 
@@ -35,7 +43,7 @@ public class BotService
                 //await botClient.SendMessage(message.Chat.Id, $"O Chat ID deste grupo é: {message.Chat.Id}", cancellationToken: cancellationToken);
             }
 
-            _commandService.HandleMessage(botClient, message, cancellationToken);
+            await _commandService.HandleMessage(botClient, message, cancellationToken);
         }
     }
 
@@ -43,5 +51,17 @@ public class BotService
     {
         Console.WriteLine($"Erro: {exception.Message}");
         return Task.CompletedTask;
+    }
+
+    private void RegisterCommands()
+    {
+        var commands = new[]
+        {
+            new Telegram.Bot.Types.BotCommand { Command = "consultartemporada", Description = "Verifica em qual temporada estamos" },
+            new Telegram.Bot.Types.BotCommand { Command = "surtar", Description = "SURTOS" }
+        };
+
+        _botClient.SetMyCommands(commands);
+        Console.WriteLine("📌 Comandos registrados no Telegram!");
     }
 }

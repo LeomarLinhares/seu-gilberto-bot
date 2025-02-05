@@ -6,13 +6,20 @@ using Telegram.Bot.Types;
 public class BotCommandService
 {
     private readonly DeepSeekService _deepSeekService;
+    private readonly SeasonService _seasonService;
+    
     private static readonly ConcurrentDictionary<long, List<Message>> GroupMessages = new();
 
-    public BotCommandService(DeepSeekService deepSeekService)
+    public BotCommandService
+    (
+        DeepSeekService deepSeekService,
+        SeasonService seasonService
+    )
     {
         _deepSeekService = deepSeekService;
+        _seasonService = seasonService;
     }
-    public void HandleMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+    public async Task HandleMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
         var messageText = message.Text;
         var chatId = message.Chat.Id;
@@ -30,20 +37,18 @@ public class BotCommandService
 
             switch (command.ToLower())
             {
-                case "/start":
-                    botClient.SendMessage(chatId, "Bem-vindo ao bot!", cancellationToken: cancellationToken);
+                case "/cadastrartemporada":
+                    botClient.SendMessage(chatId, "__ADD_SEASON__", cancellationToken: cancellationToken);
                     break;
 
-                case "/rodadaInfo":
-                    botClient.SendMessage(chatId, "__ROUND_INFO__", cancellationToken: cancellationToken);
+                case "/consultartemporada":
+                    var seasonInfo = await _seasonService.GetCurrentSeasonInfo();
+                    Console.WriteLine(seasonInfo);
+                    botClient.SendMessage(chatId, seasonInfo, cancellationToken: cancellationToken);
                     break;
 
-                case "/help":
-                    botClient.SendMessage(chatId, "Comandos disponíveis:\n/start\n/help", cancellationToken: cancellationToken);
-                    break;
-
-                case "/cadastrar":
-                    botClient.SendMessage(chatId, $"Usuário: {message.From.Username}, Id: {message.From.Id}", cancellationToken: cancellationToken);
+                case "/surtar":
+                    botClient.SendMessage(chatId, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", cancellationToken: cancellationToken);
                     break;
 
                 default:
@@ -61,6 +66,11 @@ public class BotCommandService
     {
         var chatId = message.Chat.Id;
         var messageText = message.Text;
+
+        if (messageText == null)
+        {
+            botClient.SendMessage(chatId, "Leos, por algum motivo a mensagem está chegando nula pra mim. Verifique isso por favor", cancellationToken: cancellationToken);
+        }
 
         if (messageText.EndsWith("ão", StringComparison.OrdinalIgnoreCase))
         {

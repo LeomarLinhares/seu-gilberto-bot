@@ -19,5 +19,7 @@ namespace SeuGilbertoBot.Models
         public DateTime EndDateTime { get; set; }
 
         public Season Season { get; set; }
+        public ICollection<UserRoundScore> UserRoundScores { get; set; } = new List<UserRoundScore>();
+
     }
 }

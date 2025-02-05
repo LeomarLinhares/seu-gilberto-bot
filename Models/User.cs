@@ -17,5 +17,7 @@ namespace SeuGilbertoBot.Models
         public string LastName { get; set; }
 
         public long TelegramUserId { get; set; }
+        public ICollection<UserRoundScore> UserRoundScores { get; set; } = new List<UserRoundScore>();
+
     }
 }

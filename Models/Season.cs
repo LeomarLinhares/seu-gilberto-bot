@@ -13,5 +13,6 @@ namespace SeuGilbertoBot.Models
 
         [Required]
         public DateTime StartDate { get; set; }
+        public ICollection<Round> Rounds { get; set; } = new List<Round>();
     }
 }

@@ -41,6 +41,11 @@ class Program
                 services.AddScoped<DeepSeekService>(provider =>
                     new DeepSeekService(appSettings.DeepSeek.ApiKey, appSettings.DeepSeek.ApiUrl));
 
+                // repositories
+                services.AddScoped<ISeasonRepository, SeasonRepository>();
+
+                // services
+                services.AddScoped<SeasonService>();
                 services.AddScoped<BotCommandService>();
                 services.AddScoped<BotService>();
             })
@@ -52,6 +57,7 @@ class Program
         var botService = serviceProvider.GetRequiredService<BotService>();
         botService.StartBot();
 
+        Console.WriteLine($"📌 Banco de dados: {connectionString}");
         Console.WriteLine("Digite o comando (/msg mensagem) ou 'sair' para encerrar:");
 
         while (true)
