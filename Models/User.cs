@@ -16,6 +16,7 @@ namespace SeuGilbertoBot.Models
         [MaxLength(100)]
         public string LastName { get; set; }
 
+        [Required]
         public long TelegramUserId { get; set; }
         public ICollection<UserRoundScore> UserRoundScores { get; set; } = new List<UserRoundScore>();
 

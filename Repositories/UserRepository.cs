@@ -25,10 +25,10 @@ namespace SeuGilbertoBot.Repositories
             return await _context.Users.ToListAsync();
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task<int> AddUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUserAsync(User user)

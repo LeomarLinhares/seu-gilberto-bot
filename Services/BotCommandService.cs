@@ -1,23 +1,33 @@
-﻿using System.Collections.Concurrent;
+﻿using SeuGilbertoBot.DTOs;
+using SeuGilbertoBot.Models;
+using SeuGilbertoBot.Services;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 public class BotCommandService
 {
     private readonly DeepSeekService _deepSeekService;
     private readonly SeasonService _seasonService;
+    private readonly UserService _userService;
+    private readonly CartolaService _cartolaService;
     
     private static readonly ConcurrentDictionary<long, List<Message>> GroupMessages = new();
 
     public BotCommandService
     (
         DeepSeekService deepSeekService,
-        SeasonService seasonService
+        SeasonService seasonService,
+        UserService userService,
+        CartolaService cartolaService
     )
     {
         _deepSeekService = deepSeekService;
         _seasonService = seasonService;
+        _userService = userService;
+        _cartolaService = cartolaService;
     }
     public async Task HandleMessage(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
@@ -37,8 +47,30 @@ public class BotCommandService
 
             switch (command.ToLower())
             {
-                case "/cadastrartemporada":
-                    botClient.SendMessage(chatId, "__ADD_SEASON__", cancellationToken: cancellationToken);
+                case "/registrar":
+                    var userRegisterResponse = await _userService.RegisterUser(new SeuGilbertoBot.Models.User {
+                        FirstName = message.From.FirstName,
+                        LastName = message.From.LastName,
+                        Username = message.From.Username,
+                        TelegramUserId = message.From.Id
+                    });
+
+                    botClient.SendMessage(chatId, userRegisterResponse, cancellationToken: cancellationToken);
+                    break;
+
+                case "/mercado":
+                    CartolaStatusResponseDTO marketStatus = await _cartolaService.GetStatus();
+                    string messageToMarketStatus = marketStatus.StatusMercado == 1
+                        ? "✅ O mercado está <b>ABERTO</b>!"
+                        : "❌ O mercado está <b>FECHADO</b>!";
+
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: messageToMarketStatus,
+                        parseMode: ParseMode.Html,
+                        cancellationToken: cancellationToken
+                    );
+
                     break;
 
                 case "/consultartemporada":

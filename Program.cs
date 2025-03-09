@@ -7,6 +7,7 @@ using Telegram.Bot;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using SeuGilbertoBot.Services;
 
 class Program
 {
@@ -46,8 +47,11 @@ class Program
 
                 // services
                 services.AddScoped<SeasonService>();
+                services.AddScoped<UserService>();
+                services.AddScoped<CartolaService>();
                 services.AddScoped<BotCommandService>();
                 services.AddScoped<BotService>();
+                services.AddScoped<HttpClient>();
             })
             .Build();
 

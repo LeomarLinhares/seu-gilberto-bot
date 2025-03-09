@@ -58,7 +58,9 @@ public class BotService
         var commands = new[]
         {
             new Telegram.Bot.Types.BotCommand { Command = "consultartemporada", Description = "Verifica em qual temporada estamos" },
-            new Telegram.Bot.Types.BotCommand { Command = "surtar", Description = "SURTOS" }
+            new Telegram.Bot.Types.BotCommand { Command = "surtar", Description = "O Seu Gilberto surta" },
+            new Telegram.Bot.Types.BotCommand { Command = "mercado", Description = "Verifica o status do mercado do Cartola" },
+            new Telegram.Bot.Types.BotCommand { Command = "registrar", Description = "Cadastra o jogador que digitou o comando" },
         };
 
         _botClient.SetMyCommands(commands);
